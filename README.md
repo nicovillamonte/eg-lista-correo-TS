@@ -1,47 +1,77 @@
 # Lista de Correo
 
 Esta es una implementación del ejemplo de Lista de Correo implementado en NestJS con TypeScript.
-Solamente es una traducción de lenguaje del [ejemplo de Lista de Correo del docente Fernando Dodino](https://github.com/uqbar-project/eg-lista-correo-kotlin) desarrollado en kotlin.
+Solamente es una traducción de lenguaje del [ejemplo de Lista de Correo del docente Fernando Dodino](https://github.com/uqbar-project/eg-lista-correo-kotlin/tree/01-observers-constructor) desarrollado en kotlin.
 
-### Descripción
-Este ejercicio consta de varios pasos, en la fase inicial se exploran
+### Branch 01-observers-constructor: parte 1
+En esta rama definimos varios observers:
 
-- ideas de diseño: trabajo con condicionales, herencia, strategy y un posible decorator
-- implementación de casos de uso asincrónicos
-
-### Branch main: parte 1
-Se requiere un software que maneje listas de correo. El sistema debe contemplar:
-
-- Enviar un mensaje, recibiendo la dirección de e-mail origen del correo, título y texto. El envío de mensajes a la lista puede definirse como abierto (cualquiera puede enviar a la lista) o restringido a los miembros de la lista. Para mandar los mensajes, el sistema debe interactuar con otro sistema que tiene la capacidad de mandar un mail a una dirección específica. También debemos definir la interfaz con la que nos vamos a comunicar con ese otro sistema. Contemplar la posibilidad de que el sistema de envío de mails no pueda enviar un correo determinado. Como primera medida vamos a ignorar los mails que no se pudieron enviar. Cada usuario puede tener definida más de una dirección de e-mail, desde las que puede enviar mensajes a la(s) lista(s). De todas las direcciones de e-mail que tenga, una es a la que se le envían los mails.
-- Suscribir un nuevo miembro a una lista de correo. La suscripción también puede ser definida como abierta (cualquiera que se suscribe es admitido) o cerrada (los pedidos de suscripción deben ser aprobados por un administrador).
-
-# Solución
-- [Link al desarrollo de la solución](https://docs.google.com/document/d/1aw8p79d78zos47ommvwZw6fIkHH_Qx_SBfwU3yfJ96k/edit)
-
-En esta variante elegimos
-
-- modelar con un strategy los modos de suscripción
-- y también con un strategy las formas de validación, eso nos permite encontrar formas de subclasificar las listas de correo por otro criterio a futuro
-- aunque por el momento hay una sola validación, definimos dos tipos de envío: el abierto no tiene validación, termina siendo un [Null Object Pattern](https://refactoring.guru/es/introduce-null-object) o una forma de evitar tener una referencia nullable
-- en este test para envíos abiertos
+- el envío de mails pasa a estar en un observer aparte, al cual le pasamos el mailSender utilizando la técnica constructor injection.
 
 ``` typescript
-it('un usuario no suscripto puede enviar posts a la lista y le llegan solo a los suscriptos', () => {
-  const usuario: Usuario = new Usuario('user@usuario.com');
-  const post: Post = {
-    emisor: usuario,
-    asunto: 'Sale asado?',
-    mensaje: 'Lo que dice el asunto',
-  };
-  lista.recibirPost(post);
+  const usuarioVerbosoObserver = new BloqueoUsuarioVerbosoObserver();
 
-  expect(mockedSendMailMethod).toHaveBeenCalledTimes(1);
-  expect(mockedSendMailMethod).toHaveBeenCalledWith({
-    from: 'user@usuario.com',
-    to: 'usuario1@usuario.com, usuario2@usuario.com, usuario3@usuario.com',
-    subject: '[algo2] Sale asado?',
-    content: 'Lo que dice el asunto',
-  });
-});
+  const lista = new ListaCorreo();
+  lista.suscribir(new Usuario('usuario1@usuario.com'));
+  lista.suscribir(new Usuario('usuario2@usuario.com'));
+  lista.agregarPostObserver(usuarioVerbosoObserver);
 ```
-estamos probando muchas cosas a la vez (1. el mail que se genera con los destinatarios ordenados, 2. que no se envía el mail al usuario que envía el post y 3. que se envía un solo mail). Otra alternativa podría ser generar varios tests unitarios por separado, aunque tendríamos que repetir la clase de equivalencia y la construcción del fixture para ese test. Por el momento preferimos dejarlo así, aun sabiendo que es un test que fácilmente se rompe si alguna de las condiciones del negocio cambia.
+
+El MailObserver define un constructor que exige que le pasemos el mailSender:
+
+``` typescript
+export class MailObserver implements PostObserver {
+  constructor(
+    private readonly mailSender: MailSender,
+    private readonly prefijo: string,
+  ) {}
+```
+
+- también se implementan el bloqueo al usuario que envía muchos post (fíjense que se delega al usuario muchas de las preguntas, pero es el observer el que dispara el cambio)
+class BloqueoUsuarioVerbosoObserver : PostObserver {
+
+``` typescript
+postEnviado(post: Post, lista: ListaCorreo) {
+  this.mailSender.sendMail({
+    from: post.mailEmisor(),
+    to: lista.getMailsDestino(post),
+    subject: `[${this.prefijo}] ${post.asunto}`,
+    content: post.mensaje,
+  });
+}
+```
+
+- y por último el registro de post con "malas palabras" que se puede configurar
+
+``` typescript
+export class MalasPalabrasObserver implements PostObserver {
+  private readonly malasPalabras: string[] = [];
+  readonly postConMalasPalabras: Post[] = [];
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  postEnviado(post: Post, lista: ListaCorreo) {
+    if (this.tieneMalasPalabras(post)) {
+      this.postConMalasPalabras.push(post);
+    }
+  }
+
+  tieneMalasPalabras(post: Post) {
+    return this.malasPalabras.some((palabra) => post.tienePalabra(palabra));
+  }
+```
+
+# Notificación a los observers
+La lista de correo notifica a los interesados en el evento "post recibido":
+
+``` typescript
+recibirPost(post: Post) {
+  if (!post.emisor.activo)
+    throw new BusinessError(
+      'El usuario está inhabilitado para enviar posts.',
+    );
+  this.validacionEnvio.validarPost(post, this);
+
+  post.enviado();
+  this.postObservers.forEach((observer) => observer.postEnviado(post, this));
+}
+```

@@ -1,5 +1,5 @@
+import { PostObserver } from '../observer/post-observer';
 import { BusinessError } from '../error/bussiness.error';
-import { MailSender } from './mail-sender';
 import { Post } from './post';
 import { Usuario } from './usuario';
 
@@ -8,8 +8,7 @@ export class ListaCorreo {
   private readonly usuariosPendientes: Array<Usuario> = [];
   tipoSuscripcion: TipoSuscripcion = new SuscripcionAbierta();
   validacionEnvio: ValidacionEnvio = new EnvioLibre();
-  mailSender!: MailSender;
-  prefijo = '';
+  postObservers: Array<PostObserver> = [];
 
   suscribir(usuario: Usuario) {
     this.tipoSuscripcion.suscribir(usuario, this);
@@ -24,21 +23,25 @@ export class ListaCorreo {
   }
 
   recibirPost(post: Post) {
+    if (!post.emisor.activo)
+      throw new BusinessError(
+        'El usuario está inhabilitado para enviar posts.',
+      );
     this.validacionEnvio.validarPost(post, this);
 
-    this.mailSender.sendMail({
-      from: post.emisor.mailPrincipal,
-      to: this.getMailsDestino(post),
-      subject: `[${this.prefijo}] ${post.asunto}`,
-      content: post.mensaje,
-    });
+    post.enviado();
+    this.postObservers.forEach((observer) => observer.postEnviado(post, this));
   }
 
-  private getMailsDestino(post: Post) {
+  getMailsDestino(post: Post) {
     return this.suscriptos
-      .filter((usuario) => usuario !== post.emisor)
+      .filter((usuario) => usuario !== post.emisor && usuario.activo)
       .map((usuario) => usuario.mailPrincipal)
       .join(', ');
+  }
+
+  agregarPostObserver(postObserver: PostObserver) {
+    this.postObservers.push(postObserver);
   }
 
   /*********************** Definiciones internas  ***************************/

@@ -1,73 +1,47 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
+# Lista de Correo
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Esta es una implementación del ejemplo de Lista de Correo implementado en NestJS con TypeScript.
+Solamente es una traducción de lenguaje del [ejemplo de Lista de Correo del docente Fernando Dodino](https://github.com/uqbar-project/eg-lista-correo-kotlin) desarrollado en kotlin.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+### Descripción
+Este ejercicio consta de varios pasos, en la fase inicial se exploran
 
-## Description
+- ideas de diseño: trabajo con condicionales, herencia, strategy y un posible decorator
+- implementación de casos de uso asincrónicos
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### Branch master: parte 1
+Se requiere un software que maneje listas de correo. El sistema debe contemplar:
 
-## Installation
+- Enviar un mensaje, recibiendo la dirección de e-mail origen del correo, título y texto. El envío de mensajes a la lista puede definirse como abierto (cualquiera puede enviar a la lista) o restringido a los miembros de la lista. Para mandar los mensajes, el sistema debe interactuar con otro sistema que tiene la capacidad de mandar un mail a una dirección específica. También debemos definir la interfaz con la que nos vamos a comunicar con ese otro sistema. Contemplar la posibilidad de que el sistema de envío de mails no pueda enviar un correo determinado. Como primera medida vamos a ignorar los mails que no se pudieron enviar. Cada usuario puede tener definida más de una dirección de e-mail, desde las que puede enviar mensajes a la(s) lista(s). De todas las direcciones de e-mail que tenga, una es a la que se le envían los mails.
+- Suscribir un nuevo miembro a una lista de correo. La suscripción también puede ser definida como abierta (cualquiera que se suscribe es admitido) o cerrada (los pedidos de suscripción deben ser aprobados por un administrador).
 
-```bash
-$ npm install
+# Solución
+- [Link al desarrollo de la solución](https://docs.google.com/document/d/1aw8p79d78zos47ommvwZw6fIkHH_Qx_SBfwU3yfJ96k/edit)
+
+En esta variante elegimos
+
+- modelar con un strategy los modos de suscripción
+- y también con un strategy las formas de validación, eso nos permite encontrar formas de subclasificar las listas de correo por otro criterio a futuro
+- aunque por el momento hay una sola validación, definimos dos tipos de envío: el abierto no tiene validación, termina siendo un [Null Object Pattern](https://refactoring.guru/es/introduce-null-object) o una forma de evitar tener una referencia nullable
+- en este test para envíos abiertos
+
+``` typescript
+it('un usuario no suscripto puede enviar posts a la lista y le llegan solo a los suscriptos', () => {
+  const usuario: Usuario = new Usuario('user@usuario.com');
+  const post: Post = {
+    emisor: usuario,
+    asunto: 'Sale asado?',
+    mensaje: 'Lo que dice el asunto',
+  };
+  lista.recibirPost(post);
+
+  expect(mockedSendMailMethod).toHaveBeenCalledTimes(1);
+  expect(mockedSendMailMethod).toHaveBeenCalledWith({
+    from: 'user@usuario.com',
+    to: 'usuario1@usuario.com, usuario2@usuario.com, usuario3@usuario.com',
+    subject: '[algo2] Sale asado?',
+    content: 'Lo que dice el asunto',
+  });
+});
 ```
-
-## Running the app
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Test
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+estamos probando muchas cosas a la vez (1. el mail que se genera con los destinatarios ordenados, 2. que no se envía el mail al usuario que envía el post y 3. que se envía un solo mail). Otra alternativa podría ser generar varios tests unitarios por separado, aunque tendríamos que repetir la clase de equivalencia y la construcción del fixture para ese test. Por el momento preferimos dejarlo así, aun sabiendo que es un test que fácilmente se rompe si alguna de las condiciones del negocio cambia.

@@ -47,7 +47,6 @@ export class MalasPalabrasObserver implements PostObserver {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   postEnviado(post: Post, lista: ListaCorreo) {
     if (this.tieneMalasPalabras(post)) {
-      // console.log("Mensaje enviado a admin por mensaje con malas palabras: " + post.mensaje)
       this.postConMalasPalabras.push(post);
     }
   }

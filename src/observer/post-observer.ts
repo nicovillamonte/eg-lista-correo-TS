@@ -1,6 +1,6 @@
 import { ListaCorreo } from '../domain/lista-correo';
 import { Post } from '../domain/post';
-import { StubMailSender } from '../domain/stub-mail-sender';
+import { stubMailSender } from '../domain/stub-mail-sender';
 
 export interface PostObserver {
   postEnviado(post: Post, lista: ListaCorreo): void;
@@ -17,7 +17,7 @@ export class MailObserver implements PostObserver {
   }
 
   postEnviado(post: Post, lista: ListaCorreo) {
-    StubMailSender.sendMail({
+    stubMailSender.sendMail({
       from: post.mailEmisor(),
       to: lista.getMailsDestino(post),
       subject: `[${this.prefijo}] ${post.asunto}`,

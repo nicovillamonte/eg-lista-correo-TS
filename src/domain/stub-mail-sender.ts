@@ -19,4 +19,4 @@ class ExtendedMailSender implements MailSender {
   }
 }
 
-export const StubMailSender = new ExtendedMailSender();
+export const stubMailSender = new ExtendedMailSender();

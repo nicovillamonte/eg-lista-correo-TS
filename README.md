@@ -1,77 +1,33 @@
 # Lista de Correo
 
 Esta es una implementación del ejemplo de Lista de Correo implementado en NestJS con TypeScript.
-Solamente es una traducción de lenguaje del [ejemplo de Lista de Correo del docente Fernando Dodino](https://github.com/uqbar-project/eg-lista-correo-kotlin/tree/01-observers-constructor) desarrollado en kotlin.
+Solamente es una traducción de lenguaje del [ejemplo de Lista de Correo del docente Fernando Dodino](https://github.com/uqbar-project/eg-lista-correo-kotlin/tree/02-observers-setter) desarrollado en kotlin.
 
-### Branch 01-observers-constructor: parte 1
-En esta rama definimos varios observers:
-
-- el envío de mails pasa a estar en un observer aparte, al cual le pasamos el mailSender utilizando la técnica constructor injection.
+### Branch 02-observers-setter
+En esta pequeña variante el MailObserver no define un constructor específico, entonces la referencia al mailSender se inyecta vía setter:
 
 ``` typescript
-  const usuarioVerbosoObserver = new BloqueoUsuarioVerbosoObserver();
-
-  const lista = new ListaCorreo();
-  lista.suscribir(new Usuario('usuario1@usuario.com'));
-  lista.suscribir(new Usuario('usuario2@usuario.com'));
-  lista.agregarPostObserver(usuarioVerbosoObserver);
+describe('TestEnvioAbierto', () => {
+  const mailSender: MailSender = new MailSender();
+  const mockedSendMailMethod = jest.fn();
+  mailSender.sendMail = mockedSendMailMethod;
+  ...
+  const mailObserver = new MailObserver();
+  mailObserver.setMailSender(mailSender);
+  mailObserver.setPrefijo('algo2');
 ```
 
-El MailObserver define un constructor que exige que le pasemos el mailSender:
+La referencia mailSender se puede inicializar en forma lazy mediante el modificador `!`:
 
 ``` typescript
 export class MailObserver implements PostObserver {
-  constructor(
-    private readonly mailSender: MailSender,
-    private readonly prefijo: string,
-  ) {}
+  private mailSender!: MailSender;
+  private prefijo!: string;
 ```
 
-- también se implementan el bloqueo al usuario que envía muchos post (fíjense que se delega al usuario muchas de las preguntas, pero es el observer el que dispara el cambio)
-class BloqueoUsuarioVerbosoObserver : PostObserver {
+En TypeScript, a diferencia de Kotlin, el programa no va a romper si no le asignamos alguno de estos atributos antes de utilizar la referencia. El problema va a surgir cuando lo intentemos, ya que nos arrojará un error como el siguiente:
 
-``` typescript
-postEnviado(post: Post, lista: ListaCorreo) {
-  this.mailSender.sendMail({
-    from: post.mailEmisor(),
-    to: lista.getMailsDestino(post),
-    subject: `[${this.prefijo}] ${post.asunto}`,
-    content: post.mensaje,
-  });
-}
 ```
-
-- y por último el registro de post con "malas palabras" que se puede configurar
-
-``` typescript
-export class MalasPalabrasObserver implements PostObserver {
-  private readonly malasPalabras: string[] = [];
-  readonly postConMalasPalabras: Post[] = [];
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  postEnviado(post: Post, lista: ListaCorreo) {
-    if (this.tieneMalasPalabras(post)) {
-      this.postConMalasPalabras.push(post);
-    }
-  }
-
-  tieneMalasPalabras(post: Post) {
-    return this.malasPalabras.some((palabra) => post.tienePalabra(palabra));
-  }
+TypeError: Cannot read properties of undefined (reading '...')
 ```
-
-# Notificación a los observers
-La lista de correo notifica a los interesados en el evento "post recibido":
-
-``` typescript
-recibirPost(post: Post) {
-  if (!post.emisor.activo)
-    throw new BusinessError(
-      'El usuario está inhabilitado para enviar posts.',
-    );
-  this.validacionEnvio.validarPost(post, this);
-
-  post.enviado();
-  this.postObservers.forEach((observer) => observer.postEnviado(post, this));
-}
-```
+Los valores no seteados en Typescript comienzan como `undefined` y no esperaran a ser seteados para ser utilizados, con la particularidad de que no referencian a ningún objeto, lo que los hace inútiles a la hora de querer usarlo como uno de ellos.

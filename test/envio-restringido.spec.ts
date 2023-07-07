@@ -14,7 +14,10 @@ describe('TestEnvioRestringido', () => {
     lista.suscribir(usuarioSuscripto);
     lista.suscribir(new Usuario('usuario2@usuario.com'));
     lista.suscribir(new Usuario('usuario3@usuario.com'));
-    lista.agregarPostObserver(new MailObserver(mockedMailSender, 'algo2'));
+    const mailObserver = new MailObserver();
+    mailObserver.setMailSender(mockedMailSender);
+    mailObserver.setPrefijo('algo2');
+    lista.agregarPostObserver(mailObserver);
 
     it('un usuario no suscripto no puede enviar posts a la lista', () => {
       const usuario = new Usuario('user@usuario.com');

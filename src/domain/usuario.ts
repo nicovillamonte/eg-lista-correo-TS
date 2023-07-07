@@ -1,7 +1,7 @@
 export class Usuario {
   constructor(
     readonly mailPrincipal: string,
-    readonly mailsAlternativos: string[] = [],
+    private readonly mailsAlternativos: string[] = [],
   ) {}
 
   private mailsEnviados = 0;

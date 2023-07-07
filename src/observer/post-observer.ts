@@ -10,8 +10,8 @@ export interface PostObserver {
   MailObserver
 ------------------------*/
 export class MailObserver implements PostObserver {
-  private mailSender: MailSender;
-  private prefijo: string;
+  private mailSender!: MailSender;
+  private prefijo!: string;
 
   setMailSender(mailSender: MailSender) {
     this.mailSender = mailSender;

@@ -15,7 +15,7 @@ describe('TestEnvioRestringido', () => {
     lista.suscribir(new Usuario('usuario2@usuario.com'));
     lista.suscribir(new Usuario('usuario3@usuario.com'));
     const mailObserver = new MailObserver();
-    mailObserver.setMailSender(mockedMailSender);
+    // mailObserver.setMailSender(mockedMailSender);
     mailObserver.setPrefijo('algo2');
     lista.agregarPostObserver(mailObserver);
 
@@ -31,7 +31,7 @@ describe('TestEnvioRestringido', () => {
       }).toThrow();
     });
 
-    it('un usuario suscripto puede enviar post a la lista y sale a los demás usuarios de la misma', () => {
+    it('un usuario suscripto puede enviar post a la lista y sale a los demás usuarios de la misma  - prueba con mock falla', () => {
       const post = new Post(
         usuarioSuscripto,
         'Sale asado?',

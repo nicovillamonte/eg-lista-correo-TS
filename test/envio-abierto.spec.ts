@@ -4,6 +4,7 @@ import { Usuario } from '../src/domain/usuario';
 import { Post } from '../src/domain/post';
 import { MailObserver } from '../src/observer/post-observer';
 import { stubMailSender } from '../src/domain/stub-mail-sender';
+import { ServiceLocator } from '../src/domain/service-locator';
 
 describe('TestEnvioAbierto', () => {
   const mailSender: MailSender = new MailSender();
@@ -15,8 +16,8 @@ describe('TestEnvioAbierto', () => {
   lista.suscribir(new Usuario('usuario2@usuario.com'));
   lista.suscribir(new Usuario('usuario3@usuario.com'));
   const mailObserver = new MailObserver();
-  // como es un Singleton no puedo cambiar el mail sender
-  // mailObserver.setMailSender(mailSender);
+  // cambio la referencia (indirecta) en el service locator
+  ServiceLocator.mailSender = mailSender;
   mailObserver.setPrefijo('algo2');
   lista.agregarPostObserver(mailObserver);
 
@@ -39,8 +40,8 @@ describe('TestEnvioAbierto', () => {
   });
 
   it('un usuario no suscripto puede enviar posts a la lista y le llegan solo a los suscriptos - prueba con stub fijo anda', () => {
-    // Como el stubMailSender es una instancia global, nunca se recrea en los tests unitarios
-    // otra desventaja es que para que este test pase hay que blanquear las referencias
+    // cambio la referencia (indirecta) en el service locator y la reseteo para evitar efectos colaterales de otros tests
+    ServiceLocator.mailSender = stubMailSender;
     stubMailSender.reset();
     const usuario: Usuario = new Usuario('user@usuario.com');
 

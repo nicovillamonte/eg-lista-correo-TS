@@ -2,6 +2,7 @@ import { Post } from '../src/domain/post';
 import { EnvioRestringido, ListaCorreo } from '../src/domain/lista-correo';
 import { Usuario } from '../src/domain/usuario';
 import { MailObserver } from '../src/observer/post-observer';
+import { ServiceLocator } from '../src/domain/service-locator';
 
 describe('TestEnvioRestringido', () => {
   describe('dada una lista de envio restringido', () => {
@@ -15,7 +16,8 @@ describe('TestEnvioRestringido', () => {
     lista.suscribir(new Usuario('usuario2@usuario.com'));
     lista.suscribir(new Usuario('usuario3@usuario.com'));
     const mailObserver = new MailObserver();
-    // mailObserver.setMailSender(mockedMailSender);
+    // cambio la referencia (indirecta) en el service locator
+    ServiceLocator.mailSender = mockedMailSender;
     mailObserver.setPrefijo('algo2');
     lista.agregarPostObserver(mailObserver);
 

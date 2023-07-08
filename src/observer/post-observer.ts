@@ -1,3 +1,4 @@
+import { ServiceLocator } from '../domain/service-locator';
 import { ListaCorreo } from '../domain/lista-correo';
 import { Post } from '../domain/post';
 import { stubMailSender } from '../domain/stub-mail-sender';
@@ -17,7 +18,7 @@ export class MailObserver implements PostObserver {
   }
 
   postEnviado(post: Post, lista: ListaCorreo) {
-    stubMailSender.sendMail({
+    ServiceLocator.mailSender.sendMail({
       from: post.mailEmisor(),
       to: lista.getMailsDestino(post),
       subject: `[${this.prefijo}] ${post.asunto}`,

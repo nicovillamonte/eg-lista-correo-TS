@@ -31,3 +31,10 @@ En TypeScript, a diferencia de Kotlin, el programa no va a romper si no le asign
 TypeError: Cannot read properties of undefined (reading '...')
 ```
 Los valores no seteados en Typescript comienzan como `undefined` y no esperaran a ser seteados para ser utilizados, con la particularidad de que no referencian a ningún objeto, lo que los hace inútiles a la hora de querer usarlo como uno de ellos.
+
+## Ejecución
+La ejecucion de este proyecto es meramente con propósito educativo. Por lo tanto la ejecución con el comando `npm start` solo comenzaría la ejecución de un programa que no tiene funcionalidad.<br><br>
+Por lo tanto, para testear el código se debe ejecutar el siguiente comando:
+```
+npm test
+```

@@ -45,3 +45,11 @@ it('un usuario no suscripto puede enviar posts a la lista y le llegan solo a los
 });
 ```
 estamos probando muchas cosas a la vez (1. el mail que se genera con los destinatarios ordenados, 2. que no se envía el mail al usuario que envía el post y 3. que se envía un solo mail). Otra alternativa podría ser generar varios tests unitarios por separado, aunque tendríamos que repetir la clase de equivalencia y la construcción del fixture para ese test. Por el momento preferimos dejarlo así, aun sabiendo que es un test que fácilmente se rompe si alguna de las condiciones del negocio cambia.
+
+
+## Ejecución
+La ejecucion de este proyecto es meramente con propósito educativo. Por lo tanto la ejecución con el comando `npm start` solo comenzaría la ejecución de un programa que no tiene funcionalidad.<br><br>
+Por lo tanto, para testear el código se debe ejecutar el siguiente comando:
+```
+npm test
+```

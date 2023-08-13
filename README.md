@@ -96,3 +96,10 @@ En definitiva, utilizar singletons para esta solución introdujo muchos problema
 - y como la referencia es global, corta la independencia de los tests y hay que solucionarlo manualmente
 
 > Por lo dicho antes, nuestro consejo es que el singleton es una técnica que debe introducirse con mucho cuidado en nuestras soluciones y debemos estar al tanto de las desventajas de su utilización
+
+## Ejecución
+La ejecucion de este proyecto es meramente con propósito educativo. Por lo tanto la ejecución con el comando `npm start` solo comenzaría la ejecución de un programa que no tiene funcionalidad.<br><br>
+Por lo tanto, para testear el código se debe ejecutar el siguiente comando:
+```
+npm test
+```

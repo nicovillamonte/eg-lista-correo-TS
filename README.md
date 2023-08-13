@@ -75,3 +75,10 @@ recibirPost(post: Post) {
   this.postObservers.forEach((observer) => observer.postEnviado(post, this));
 }
 ```
+
+## Ejecución
+La ejecucion de este proyecto es meramente con propósito educativo. Por lo tanto la ejecución con el comando `npm start` solo comenzaría la ejecución de un programa que no tiene funcionalidad.<br><br>
+Por lo tanto, para testear el código se debe ejecutar el siguiente comando:
+```
+npm test
+```
